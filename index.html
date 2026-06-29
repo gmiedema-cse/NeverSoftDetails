@@ -713,8 +713,18 @@ function buildLogCsv(buf, customerName, capName, fwVersion, fwJulian) {
   var hdr=buf.slice(0,14);
   var yy=hdr[0],mm=hdr[1],dd=hdr[2];
   var fw_major=hdr[5],fw_point=hdr[6],tplevel=hdr[7];
-  var julian=bcdToOrdinal(yy,mm,dd);
-  var verStr=fw_major+'.'+fw_point;
+
+  // Sanity check the header -- if it looks like uninitialized data (all 0xFF or 0x00),
+  // fall back to the cap's known version/date from the 'v' command reply.
+  var hdrBad = (yy===0xFF||yy===0x00) && (mm===0xFF||mm===0x00) && (dd===0xFF||dd===0x00);
+  var julian, verStr;
+  if (hdrBad) {
+    julian = fwJulian || '';
+    verStr = fwVersion || '';
+  } else {
+    julian = bcdToOrdinal(yy,mm,dd);
+    verStr = fw_major + '.' + fw_point;
+  }
 
   var now=new Date();
   var ts=now.getFullYear()+
@@ -746,9 +756,13 @@ function buildLogCsv(buf, customerName, capName, fwVersion, fwJulian) {
     else if (targRaw <= 70)  mode=3;
     else if (targRaw > 70)   mode=4;
 
-    // Skip null/erased records — all data bytes 0xFF means no data logged for this day
-    var isNull = r[3]===0xFF && r[4]===0xFF && r[7]===0xFF && r[11]===0xFF && r[12]===0xFF && r[13]===0xFF;
-    if (isNull) { dayNum--; continue; }  // don't count or output this day
+    // Skip null/erased records:
+    // 0xFF = erased EEPROM (factory state)
+    // 0x00 = zero-initialized board
+    // Either way, if all meaningful data bytes are the same sentinel value, skip.
+    var allFF = r[3]===0xFF && r[4]===0xFF && r[7]===0xFF && r[11]===0xFF && r[12]===0xFF && r[13]===0xFF;
+    var all00 = r[3]===0x00 && r[4]===0x00 && r[7]===0x00 && r[11]===0x00 && r[12]===0x00 && r[13]===0x00;
+    if (allFF || all00) { dayNum--; continue; }  // don't count or output this day
     {
       var dayHiPsi  = pressToPsi(r[3]);
       var aveHiPsi  = pressToPsi(r[4]);
