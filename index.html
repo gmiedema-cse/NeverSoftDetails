@@ -82,40 +82,21 @@
     .cap-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
     .cap-empty{font-size:14px;color:var(--ink-mute);font-style:italic;padding:6px 0}
 
-    /* Cap row — two-row layout on mobile:
-       Row 1: [checkbox] [name + pills]
-       Row 2 (buttons): [blink] [remove] — right-aligned
-       On wider screens both rows collapse into one grid line. */
+    /* Cap row — two-row layout:
+       Row 1: name + pills + status
+       Row 2: blink + remove buttons right-aligned */
     .cap-row{
-      display:grid;
-      grid-template-columns:24px 1fr;
-      grid-template-rows:auto auto;
-      gap:6px 10px;
-      padding:12px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:14px 16px;
       background:var(--bg);border:1px solid var(--line);
       border-radius:var(--r);transition:border-color .15s,background .15s;
     }
-    .cap-row.is-selected{border-color:var(--accent);background:var(--accent-s)}
-    .cap-row.needs-update{border-color:var(--warn)}
-
-    /* Checkbox spans both rows vertically */
-    .cap-checkbox{
-      appearance:none;width:22px;height:22px;
-      border:1.5px solid var(--line);border-radius:6px;cursor:pointer;
-      position:relative;background:var(--bg-card);transition:all .15s;
-      flex-shrink:0;grid-row:1/3;align-self:center;
-      touch-action:manipulation;
-      /* larger tap target */
-      min-height:44px;min-width:44px;
-      margin:-11px 0 -11px -11px;
-      padding:11px;
-      background-clip:content-box;
-    }
-    .cap-checkbox:checked{background-color:var(--accent);border-color:var(--accent)}
-    .cap-checkbox:checked::after{content:'';position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+    .cap-row.needs-update{border-color:var(--warn);background:var(--warn-s)}
 
     /* Info area */
-    .cap-info{display:flex;flex-direction:column;gap:4px;min-width:0;grid-column:2}
+    .cap-info{display:flex;flex-direction:column;gap:4px;min-width:0;}
     .cap-name{font-family:var(--font-m);font-size:13px;font-weight:500;color:var(--ink);word-break:break-word;overflow-wrap:anywhere}
     .cap-meta{display:flex;gap:6px;flex-wrap:wrap}
     .cap-pill{
@@ -248,10 +229,7 @@
     <div class="section-label">Caps</div>
     <button class="btn btn-primary" id="findBtn">+ Add cap</button>
     <div class="cap-list" id="capList"></div>
-    <div class="cap-controls" id="capControls" style="display:none">
-      <div><a id="selectAll">Select all</a><a id="selectNone">Select none</a></div>
-      <span id="selectedCount"></span>
-    </div>
+
   </section>
 
   <!-- PRESSURE MODE -->
@@ -308,11 +286,14 @@
  * FIRMWARE CONFIG
  * Update FIRMWARE_PATH and REQUIRED_VERSION when new firmware is released.
  * =========================================================================*/
-var GITHUB_REPO      = 'gmiedema-cse/NeverSoft';
+var GITHUB_REPO      = 'gmiedema-cse/CSE-Marine';
 var FIRMWARE_PATH    = 'firmware/NS_application_OTA_v3.2.img';
 var RAW_BASE         = 'https://raw.githubusercontent.com/' + GITHUB_REPO + '/main';
 var FIRMWARE_URL     = RAW_BASE + '/' + FIRMWARE_PATH;
 var REQUIRED_VERSION = '3.2';   // hardcoded -- caps below this get flagged
+// Build date of the firmware in BCD (YY, MM, DD) -- update when releasing new firmware
+// e.g. [0x26, 0x06, 0x04] = June 4, 2026
+var FIRMWARE_BUILD_DATE = [0x26, 0x06, 0x19];  // June 19 2026 = 26170
 
 var NUS_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 var NUS_RX      = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
@@ -472,7 +453,7 @@ async function connectCap(device) {
   var cap = {
     id: device.id, name: device.name || '(unnamed)', device: device,
     rx: null, tx: null, pending: null,
-    selected: true,
+
     currentMode: null,   // set after successful programming
     version: null, julian: null, needsUpdate: false,
     status: 'Connecting...', tone: 'working',
@@ -549,30 +530,26 @@ async function identifyCap(id) {
 function renderCaps() {
   var list = Array.from(caps.values());
   var capListEl = document.getElementById('capList');
-  var capControlsEl = document.getElementById('capControls');
 
   if (!list.length) {
     capListEl.innerHTML = '<div class="cap-empty">No caps yet -- tap + Add cap.</div>';
-    capControlsEl.style.display = 'none';
     updateControls(); return;
   }
 
   capListEl.innerHTML = '';
   list.forEach(function(cap) {
-    var row = document.createElement('label');
-    row.className = 'cap-row' +
-      (cap.selected ? ' is-selected' : '') +
-      (cap.needsUpdate ? ' needs-update' : '');
+    var row = document.createElement('div');
+    row.className = 'cap-row' + (cap.needsUpdate ? ' needs-update' : '');
 
-    // Build mode pill
+    // Mode pill
     var modePill = cap.currentMode !== null
       ? '<span class="cap-pill mode">' + MODE_LABELS[cap.currentMode].name + ' ' + MODE_LABELS[cap.currentMode].psi + ' PSI</span>'
       : '';
 
-    // Build firmware pill
+    // Firmware pill
     var fwPill = '';
     if (cap.version !== null) {
-      var fwLabel = 'v' + cap.version + (cap.julian ? ' ' + cap.julian : '');
+      var fwLabel = 'v' + cap.version + (cap.julian ? ' • ' + cap.julian : '');
       fwPill = '<span class="cap-pill ' + (cap.needsUpdate ? 'fw-bad' : 'fw-ok') + '">' + fwLabel + '</span>';
     }
 
@@ -581,7 +558,6 @@ function renderCaps() {
       : '';
 
     row.innerHTML =
-      '<input type="checkbox" class="cap-checkbox" data-id="' + cap.id + '"' + (cap.selected ? ' checked' : '') + '>' +
       '<div class="cap-info">' +
         '<span class="cap-name"></span>' +
         metaHtml +
@@ -599,16 +575,6 @@ function renderCaps() {
     capListEl.appendChild(row);
   });
 
-  capListEl.querySelectorAll('.cap-checkbox').forEach(function(cb) {
-    cb.addEventListener('change', function() {
-      var c = caps.get(cb.dataset.id);
-      if (c) {
-        c.selected = cb.checked;
-        if (cb.checked && c.rx) bleWrite(c.rx, new Uint8Array([0x62])).catch(function(){});
-        renderCaps();
-      }
-    });
-  });
   capListEl.querySelectorAll('.btn-blink').forEach(function(btn) {
     btn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); identifyCap(btn.dataset.id); });
   });
@@ -616,16 +582,14 @@ function renderCaps() {
     btn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); removeCap(btn.dataset.remove); });
   });
 
-  capControlsEl.style.display = 'flex';
-  var sel = list.filter(function(c) { return c.selected; }).length;
-  document.getElementById('selectedCount').textContent = sel + ' of ' + list.length + ' selected';
   updateControls();
 }
 
 function updateControls() {
   var list = Array.from(caps.values());
-  var selConn = list.filter(function(c) { return c.selected && c.rx; }).length;
-  var selNeedsUpdate = list.filter(function(c) { return c.selected && c.needsUpdate && c.rx; }).length;
+  // All connected caps are always active -- no checkbox selection needed
+  var connCount      = list.filter(function(c) { return c.rx; }).length;
+  var updateCount    = list.filter(function(c) { return c.rx && c.needsUpdate; }).length;
 
   var findBtn    = document.getElementById('findBtn');
   var programBtn = document.getElementById('programBtn');
@@ -635,19 +599,19 @@ function updateControls() {
   quitBtn.disabled = list.length === 0;
 
   var hasMode = selectedLevel !== null;
-  var hasOta  = otaEnabled && firmwareReady && selNeedsUpdate > 0;
-  programBtn.disabled = !(selConn > 0 && (hasMode || hasOta));
+  var hasOta  = otaEnabled && firmwareReady && updateCount > 0;
+  programBtn.disabled = !(connCount > 0 && (hasMode || hasOta));
 
-  if (!selConn) { programBtn.textContent = 'Go'; return; }
+  if (!connCount) { programBtn.textContent = 'Go'; return; }
   var parts = [];
   if (hasMode) parts.push('Program ' + MODE_LABELS[selectedLevel].name);
-  if (hasOta)  parts.push('OTA ' + selNeedsUpdate + ' cap' + (selNeedsUpdate === 1 ? '' : 's'));
+  if (hasOta)  parts.push('OTA ' + updateCount + ' cap' + (updateCount === 1 ? '' : 's'));
   programBtn.textContent = parts.length ? 'Go: ' + parts.join(' + ') : 'Go';
 }
 
 /* -- Go action ----------------------------------------------------------- */
 async function goAction() {
-  var sel = Array.from(caps.values()).filter(function(c) { return c.selected && c.rx; });
+  var sel = Array.from(caps.values()).filter(function(c) { return c.rx; });
   if (!sel.length) return;
 
   var doMode = selectedLevel !== null;
@@ -927,10 +891,12 @@ async function fetchFirmware() {
         head.status===404 ? 'Firmware file not found' : 'Fetch failed (HTTP '+head.status+')',
         FIRMWARE_URL); return;
     }
-    var bytes = parseInt(head.headers.get('content-length') || '0');
-    var sizeStr = bytes ? ' (' + (bytes/1024).toFixed(1) + ' KB)' : '';
     var filename = FIRMWARE_PATH.split('/').pop();
-    fwState('good', filename + '  v' + REQUIRED_VERSION + sizeStr, 'Ready -- downloads when Go is tapped');
+    // Derive ordinal date from FIRMWARE_PATH filename if it contains a date,
+    // otherwise compute from REQUIRED_VERSION release date if known.
+    // For now show the version; Julian date comes from the cap's 'v' reply.
+    var fwJulian = bcdToOrdinal(FIRMWARE_BUILD_DATE[0], FIRMWARE_BUILD_DATE[1], FIRMWARE_BUILD_DATE[2]);
+    fwState('good', filename + '  v' + REQUIRED_VERSION + '  •  ' + fwJulian, 'Ready -- downloads when Go is tapped');
     firmwareReady = true; updateControls();
   } catch(err) {
     fwState('error', 'Firmware check failed', err.message);
@@ -945,8 +911,8 @@ async function downloadFirmware() {
     otaImageBytes = new Uint8Array(await res.arrayBuffer());
     var filename = FIRMWARE_PATH.split('/').pop();
     fwState('good',
-      filename + '  v'+REQUIRED_VERSION+'  ('+( otaImageBytes.length/1024).toFixed(1)+' KB)',
-      'Downloaded '+new Date().toLocaleTimeString());
+      filename + '  v' + REQUIRED_VERSION + '  •  ' + bcdToOrdinal(FIRMWARE_BUILD_DATE[0], FIRMWARE_BUILD_DATE[1], FIRMWARE_BUILD_DATE[2]),
+      'Downloaded ' + new Date().toLocaleTimeString());
     return true;
   } catch(err) {
     fwState('error', 'Download failed', err.message); return false;
@@ -957,12 +923,7 @@ async function downloadFirmware() {
 document.getElementById('findBtn').addEventListener('click', startAddingCaps);
 document.getElementById('programBtn').addEventListener('click', goAction);
 document.getElementById('quitBtn').addEventListener('click', quitAll);
-document.getElementById('selectAll').addEventListener('click', function(e) {
-  e.preventDefault(); caps.forEach(function(c) { c.selected=true; }); renderCaps();
-});
-document.getElementById('selectNone').addEventListener('click', function(e) {
-  e.preventDefault(); caps.forEach(function(c) { c.selected=false; }); renderCaps();
-});
+
 document.querySelectorAll('.mode-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var level = Number(btn.dataset.level);
