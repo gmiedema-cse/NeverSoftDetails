@@ -106,6 +106,7 @@
     .status-tile.warn .status-tile-value{color:var(--warn)}
     .status-tile.danger .status-tile-value{color:var(--danger)}
     .status-tile-sub{font-size:11px;color:var(--ink-mute);margin-top:3px}
+    .status-tile-sub.large{font-size:20px;font-weight:700;font-family:var(--font-m);color:var(--ink);line-height:1.1;margin-top:4px}
     /* Per-cap status rows inside status section */
     .cap-status-row{padding:10px 14px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px}
     .cap-status-row-name{font-family:var(--font-m);font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px}
@@ -352,8 +353,8 @@ function decodeAdc(bytes) {
   var kpa    = psi * 6.89476;
   var chargePct = Math.max(0, Math.min(100, (battV - 3.2) / 0.8 * 100));
   // Panel %: -0.1V = 0%, 5.0V = 100%
-  // Panel %: -0.1V = 0%, 4.0V = 100%, clamped
-  var panelPct = Math.max(0, Math.min(100, (panelV + 0.1) / 4.1 * 100));
+  // Panel %: 3.4V = 0%, 4.0V = 100%, clamped
+  var panelPct = Math.max(0, Math.min(100, (panelV - 3.4) / 0.6 * 100));
   var out = { battV: battV, panelV: panelV, panelPct: panelPct, chargePct: chargePct, psi: psi, kpa: kpa, time: null, mode: null, pumpFail: null };
   if (bytes.length >= 5) {
     var tick = (bytes[3] << 8) | bytes[4];
@@ -529,14 +530,14 @@ async function readAllStatus() {
       var pumpVal=d.pumpFail===null?'--':d.pumpFail<=3?'Good':'Run Diagnostics';
       var pumpSub=d.pumpFail===null?'not reported':'fail count: '+d.pumpFail;
       var grid=document.createElement('div'); grid.className='status-grid';
-      function tile(label,value,sub,tone){
+      function tile(label,value,sub,tone,subCls){
         var t=document.createElement('div'); t.className='status-tile'+(tone?' '+tone:'');
-        t.innerHTML='<div class="status-tile-label">'+label+'</div><div class="status-tile-value">'+value+'</div>'+(sub?'<div class="status-tile-sub">'+sub+'</div>':'');
+        t.innerHTML='<div class="status-tile-label">'+label+'</div><div class="status-tile-value">'+value+'</div>'+(sub?'<div class="status-tile-sub'+(subCls?' '+subCls:'')+'">'+sub+'</div>':'');
         return t;
       }
       grid.appendChild(tile('Battery',Math.round(d.chargePct)+'%',d.battV.toFixed(2)+' V',battTone));
       grid.appendChild(tile('Solar Panel',Math.round(d.panelPct)+'%',d.panelV.toFixed(2)+' V',''));
-      grid.appendChild(tile('Pressure',d.psi.toFixed(2)+' PSI',d.kpa.toFixed(1)+' kPa',''));
+      grid.appendChild(tile('Pressure',d.psi.toFixed(2)+' PSI<br>'+d.kpa.toFixed(1)+' kPa',null,''));
       grid.appendChild(tile('Day Started',d.time||'--','time since day start',''));
       grid.appendChild(tile('Mode',d.mode?'Mode '+d.mode:'--',d.mode?PRESS[d.mode]+' PSI target':'',''));
       grid.appendChild(tile('Pump Health',pumpVal,pumpSub,pumpTone));
@@ -555,6 +556,15 @@ var logPulling   = false;
 async function pullAllLogs() {
   var list=Array.from(caps.values()).filter(function(c){return c.rx;});
   if (!list.length||logPulling) return;
+  var customerName=(document.getElementById('logCustomerName').value.trim());
+  if (!customerName) {
+    var inp=document.getElementById('logCustomerName');
+    inp.style.borderColor='var(--danger)';
+    inp.placeholder='Required -- enter customer name first';
+    inp.focus();
+    setTimeout(function(){inp.style.borderColor='';inp.placeholder='e.g. John Smith';},3000);
+    return;
+  }
   logPulling=true;
   var btn=document.getElementById('logBtn');
   var fill=document.getElementById('logBarFill');
@@ -563,8 +573,6 @@ async function pullAllLogs() {
   btn.disabled=true;
   progress.classList.add('is-visible');
   fill.style.width='0%'; label.textContent='';
-
-  var customerName=(document.getElementById('logCustomerName').value.trim()||'Unknown Customer');
 
   for (var i=0; i<list.length; i++) {
     var cap=list[i];
@@ -660,14 +668,19 @@ function buildLogCsv(buf, customerName, capName, fwVersion, fwJulian) {
     else if (targRaw <= 70)  mode=3;
     else if (targRaw > 70)   mode=4;
 
-    var dayHiPsi  = pressToPsi(r[3]);
-    var aveHiPsi  = pressToPsi(r[4]);
-    var battV     = battToV(r[7]);
-    var b11=r[11], b12=r[12], b13=r[13];
-    var pumpRun   = ((b11<<8)|b12)>>4;
-    var chrgCyc   = ((b12&0x07)<<8)|b13;
-
-    lines.push(dayNum+','+mode+','+dayHiPsi+','+aveHiPsi+','+battV+','+pumpRun+','+chrgCyc);
+    // Detect null/erased records — all data bytes 0xFF means no data logged for this day
+    var isNull = r[3]===0xFF && r[4]===0xFF && r[7]===0xFF && r[11]===0xFF && r[12]===0xFF && r[13]===0xFF;
+    if (isNull) {
+      lines.push(dayNum+',,,,,,');
+    } else {
+      var dayHiPsi  = pressToPsi(r[3]);
+      var aveHiPsi  = pressToPsi(r[4]);
+      var battV     = battToV(r[7]);
+      var b11=r[11], b12=r[12], b13=r[13];
+      var pumpRun   = ((b11<<8)|b12)>>4;
+      var chrgCyc   = ((b12&0x07)<<8)|b13;
+      lines.push(dayNum+','+mode+','+dayHiPsi+','+aveHiPsi+','+battV+','+pumpRun+','+chrgCyc);
+    }
   }
   return lines.join('\r\n');
 }
