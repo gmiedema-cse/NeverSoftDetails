@@ -237,7 +237,7 @@ var FIRMWARE_PATH    = 'firmware/NS_application_OTA_v3.2.img';
 var RAW_BASE         = 'https://raw.githubusercontent.com/' + GITHUB_REPO + '/main';
 var FIRMWARE_URL     = RAW_BASE + '/' + FIRMWARE_PATH;
 var REQUIRED_VERSION = '3.2';
-var FIRMWARE_BUILD_DATE = [0x26, 0x06, 0x29];  // June 26 2029 = 26180
+var FIRMWARE_BUILD_DATE = [0x26, 0x06, 0x29];  // June 29 2026 = 26180
 
 var NUS_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 var NUS_RX      = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
@@ -364,9 +364,17 @@ function decodeAdc(bytes) {
   var out = { battV: battV, panelV: panelV, panelPct: panelPct, chargePct: chargePct, psi: psi, kpa: kpa, time: null, mode: null, pumpFail: null, chargeOn: null };
   if (bytes.length >= 5) {
     var tick = (bytes[3] << 8) | bytes[4];
-    var secs = tick * 10;
-    var hh = Math.floor(secs/3600), rem = secs%3600, mm2 = Math.floor(rem/60), ss = rem%60;
+    var elapsedSecs = tick * 10;
+    out.elapsedSecs = elapsedSecs;
+    // "Day Started" = the actual clock time the day began, computed as
+    // (now - elapsed) rather than just displaying the elapsed duration
+    // (which can exceed 24h and look like a broken clock).
+    var dayStart = new Date(Date.now() - elapsedSecs * 1000);
+    var hh = dayStart.getHours(), mm2 = dayStart.getMinutes(), ss = dayStart.getSeconds();
     out.time = hh.toString().padStart(2,'0')+':'+mm2.toString().padStart(2,'0')+':'+ss.toString().padStart(2,'0');
+    // Also keep a human-friendly elapsed duration for context
+    var eh = Math.floor(elapsedSecs/3600), erem = elapsedSecs%3600, em = Math.floor(erem/60);
+    out.elapsedStr = eh + 'h ' + em + 'm ago';
   }
   if (bytes.length >= 6) { var mode = bytes[5]; if (mode >= 1 && mode <= 4) out.mode = mode; }
   if (bytes.length >= 9) { var pf = bytes[8]; out.pumpFail = pf >= 40 ? 0 : pf; }
@@ -430,6 +438,7 @@ async function connectCap(device) {
   var cap = { id:device.id, name:rawName||'(unnamed)', suffix:capSuffix4, device:device, rx:null, tx:null, pending:null, selected:true, currentMode:null, version:null, julian:null, needsUpdate:false, status:'Connecting...', tone:'working' };
   caps.set(device.id, cap); renderCaps();
   device.addEventListener('gattserverdisconnected', function() {
+    if (cap.heartbeatTimer) { clearInterval(cap.heartbeatTimer); cap.heartbeatTimer=null; }
     cap.rx=null; cap.tx=null;
     if (!cap.status.startsWith('OTA')) { cap.status='Connection lost'; cap.tone='warn'; }
     renderCaps();
@@ -472,6 +481,16 @@ async function connectCap(device) {
     await new Promise(function(r){setTimeout(r,300);});
     if (otaEnabled) { cap.status='Checking version...'; cap.tone='working'; renderCaps(); await checkCapVersion(cap); }
     else { cap.status='Connected'; cap.tone='good'; renderCaps(); await readCapMode(cap); }
+
+    // Heartbeat: send a no-op byte 'H' every 60s to keep BLE_Active_Tim from
+    // auto-expiring (240s timeout) during long idle stretches before the
+    // operator quits. 'H' is not a recognized PIC command but still resets
+    // the activity timer on byte arrival. Matches the devtool's heartbeat.
+    cap.heartbeatTimer = setInterval(function() {
+      if (cap.rx && cap.device?.gatt?.connected) {
+        bleWrite(cap.rx, new Uint8Array([0x48])).catch(function(){});
+      }
+    }, 60000);
   } catch(err) { cap.status='Failed: '+err.message; cap.tone='danger'; renderCaps(); }
 }
 
@@ -495,6 +514,7 @@ async function startAddingCaps() {
 
 async function removeCap(id) {
   var cap=caps.get(id); if (!cap) return;
+  if (cap.heartbeatTimer) { clearInterval(cap.heartbeatTimer); cap.heartbeatTimer=null; }
   if (cap.rx && cap.device?.gatt?.connected) { try { await bleWrite(cap.rx,new Uint8Array([0x71])); await new Promise(function(r){setTimeout(r,250);}); } catch(e){} }
   try { if (cap.device?.gatt?.connected) cap.device.gatt.disconnect(); } catch(e){}
   caps.delete(id); renderCaps();
@@ -616,7 +636,7 @@ async function readAllStatus() {
       var chargeTone = d.chargeOn === null ? '' : d.chargeOn ? 'good' : '';
       grid.appendChild(tile('Solar Charging',chargeVal,null,chargeTone));
       grid.appendChild(tile('Pressure',d.psi.toFixed(2)+' PSI<br>'+d.kpa.toFixed(1)+' kPa',null,''));
-      grid.appendChild(tile('Day Started',d.time||'--','time since day start',''));
+      grid.appendChild(tile('Day Started',d.time||'--',d.elapsedStr||'',''));
       grid.appendChild(tile('Mode',d.mode?'Mode '+d.mode:'--',null,''));
       grid.appendChild(tile('Pump Health',pumpVal,null,pumpTone));
       block.appendChild(grid);
