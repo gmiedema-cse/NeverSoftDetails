@@ -357,7 +357,8 @@ function decodeAdc(bytes) {
   var batt = bytes[0], panel = bytes[1], sensor = bytes[2];
   var battV  = 0.04 * batt  - 0.1;
   var panelV = 0.04 * panel - 0.1;
-  var psi    = sensor / 22.24194;
+  // ratiodADC -> PSI = (raw - 10.322581) / 22.241935
+  var psi    = Math.max(0, (sensor - 10.322581) / 22.241935);
   var kpa    = psi * 6.89476;
   var chargePct = Math.max(0, Math.min(100, (battV - 3.2) / 0.8 * 100));
   // Panel %: -0.1V = 0%, 5.0V = 100%
@@ -734,8 +735,8 @@ async function pullAllLogs() {
 }
 
 function buildLogCsv(buf, customerName, capName, fwVersion, fwJulian) {
-  var PRESS_DIV=22.24194, BATT_K=9.881/255.0;
-  function pressToPsi(raw){ return (raw/PRESS_DIV).toFixed(1); }
+  var BATT_K=9.881/255.0;
+  function pressToPsi(raw){ return (raw/22.24194).toFixed(1); }  // EEPROM stores filteredADC
   function battToV(raw)   { return (raw*BATT_K).toFixed(2); }
 
   var hdr=buf.slice(0,14);
