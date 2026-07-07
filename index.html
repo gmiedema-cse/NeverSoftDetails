@@ -367,15 +367,15 @@ function decodeAdc(bytes) {
   var out = { battV: battV, panelV: panelV, panelPct: panelPct, chargePct: chargePct, psi: psi, kpa: kpa, time: null, mode: null, pumpFail: null, chargeOn: null };
   if (bytes.length >= 5) {
     var tick = (bytes[3] << 8) | bytes[4];
-    var elapsedSecs = tick * 10;
+    // Wrap elapsed into a single day before using -- the 10-second tick
+    // granularity means the counter can occasionally overshoot 86400 s by
+    // up to one tick before resetting, which would push the computed
+    // day-start time onto the previous calendar day.
+    var elapsedSecs = (tick * 10) % 86400;
     out.elapsedSecs = elapsedSecs;
-    // "Day Started" = the actual clock time the day began, computed as
-    // (now - elapsed) rather than just displaying the elapsed duration
-    // (which can exceed 24h and look like a broken clock).
     var dayStart = new Date(Date.now() - elapsedSecs * 1000);
     var hh = dayStart.getHours(), mm2 = dayStart.getMinutes(), ss = dayStart.getSeconds();
-    out.time = hh.toString().padStart(2,'0')+':'+mm2.toString().padStart(2,'0')+':'+ss.toString().padStart(2,'0');
-    // Also keep a human-friendly elapsed duration for context
+    out.time = hh.toString().padStart(2,'0')+':'+mm2.toString().padStart(2,'0');
     var eh = Math.floor(elapsedSecs/3600), erem = elapsedSecs%3600, em = Math.floor(erem/60);
     out.elapsedStr = eh + 'h ' + em + 'm ago';
   }
@@ -644,7 +644,10 @@ async function readAllStatus() {
       var chargeVal = d.chargeOn === null ? '--' : d.chargeOn ? 'Charging' : 'Not charging';
       var chargeTone = d.chargeOn === null ? '' : d.chargeOn ? 'good' : '';
       grid.appendChild(tile('Solar Charging',chargeVal,null,chargeTone));
-      grid.appendChild(tile('Pressure',d.psi.toFixed(2)+' PSI<br>'+d.kpa.toFixed(1)+' kPa',null,''));
+      var pressureVal = d.psi.toFixed(2)+' PSI<br>'+d.kpa.toFixed(1)+' kPa';
+      var pressTone = cap.needsUpdate ? 'warn' : '';
+      var pressSub  = cap.needsUpdate ? 'software update required for accurate reading' : null;
+      grid.appendChild(tile('Pressure', pressureVal, pressSub, pressTone));
       grid.appendChild(tile('Day Started',d.time||'--',d.elapsedStr||'',''));
       grid.appendChild(tile('Mode',d.mode?'Mode '+d.mode:'--',null,''));
       grid.appendChild(tile('Pump Health',pumpVal,null,pumpTone));
