@@ -648,7 +648,7 @@ async function readAllStatus() {
       var pressTone = cap.needsUpdate ? 'warn' : '';
       var pressSub  = cap.needsUpdate ? 'software update required for accurate reading' : null;
       grid.appendChild(tile('Pressure', pressureVal, pressSub, pressTone));
-      grid.appendChild(tile('Day Started',d.time||'--',d.elapsedStr||'',''));
+      grid.appendChild(tile('Day Started',d.elapsedStr||'--',d.time||'',''));
       grid.appendChild(tile('Mode',d.mode?'Mode '+d.mode:'--',null,''));
       grid.appendChild(tile('Pump Health',pumpVal,null,pumpTone));
       block.appendChild(grid);
@@ -811,7 +811,7 @@ function buildLogCsv(buf, customerName, capName, fwVersion, fwJulian) {
   return lines.join('\r\n');
 }
 
-function downloadCsv(csv, capName) {
+async function downloadCsv(csv, capName) {
   var safe=(capName||'log').replace(/[^a-z0-9_-]/gi,'_');
   var now=new Date();
   var ts=now.getFullYear()+
@@ -822,6 +822,29 @@ function downloadCsv(csv, capName) {
     ('0'+now.getSeconds()).slice(-2);
   var filename='cse_log_'+safe+'_'+ts+'.csv';
   var blob=new Blob([csv],{type:'text/csv'});
+
+  // Use File System Access API (showSaveFilePicker) if available --
+  // lets the user choose exactly where to save the file.
+  // Falls back to the standard download-to-Downloads-folder on browsers
+  // that don't support it (Firefox, Safari, older Chrome).
+  if (typeof window.showSaveFilePicker === 'function') {
+    try {
+      var handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'CSV file', accept: { 'text/csv': ['.csv'] } }],
+      });
+      var writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
+    } catch(e) {
+      // User cancelled the picker -- don't fall through to auto-download
+      if (e.name === 'AbortError') return;
+      // Any other error, fall through to the standard download
+    }
+  }
+
+  // Fallback: standard anchor-click download to default Downloads folder
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a'); a.href=url; a.download=filename; a.click();
   URL.revokeObjectURL(url);
