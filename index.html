@@ -675,6 +675,21 @@ async function pullAllLogs() {
     setTimeout(function(){inp.style.borderColor='';inp.placeholder='e.g. John Smith';},3000);
     return;
   }
+
+  // showSaveFilePicker must be called synchronously within the user gesture
+  // (before any await). We open the picker NOW to get a save directory handle,
+  // then do the BLE pull, then write into the already-chosen location.
+  // One folder is picked for all caps in this session.
+  var saveDir = null;
+  if (typeof window.showDirectoryPicker === 'function') {
+    try {
+      saveDir = await window.showDirectoryPicker({ mode: 'readwrite' });
+    } catch(e) {
+      if (e.name === 'AbortError') return;  // user cancelled -- stop
+      // API unavailable or permission denied -- fall back to auto-download
+    }
+  }
+
   logPulling=true;
   var btn=document.getElementById('logBtn');
   var fill=document.getElementById('logBarFill');
@@ -723,7 +738,7 @@ async function pullAllLogs() {
       label.textContent=capDisplayName(cap)+': Failed — only '+buf.length+' bytes received.';
     } else {
       var csv=buildLogCsv(new Uint8Array(buf), customerName, capFullName(cap), cap.version, cap.julian);
-      downloadCsv(csv, capFullName(cap));
+      await downloadCsv(csv, capFullName(cap), saveDir);
       label.className='log-bar-label good';
       label.textContent='Downloaded log for '+capDisplayName(cap);
     }
@@ -811,7 +826,7 @@ function buildLogCsv(buf, customerName, capName, fwVersion, fwJulian) {
   return lines.join('\r\n');
 }
 
-async function downloadCsv(csv, capName) {
+async function downloadCsv(csv, capName, saveDir) {
   var safe=(capName||'log').replace(/[^a-z0-9_-]/gi,'_');
   var now=new Date();
   var ts=now.getFullYear()+
@@ -823,24 +838,16 @@ async function downloadCsv(csv, capName) {
   var filename='cse_log_'+safe+'_'+ts+'.csv';
   var blob=new Blob([csv],{type:'text/csv'});
 
-  // Use File System Access API (showSaveFilePicker) if available --
-  // lets the user choose exactly where to save the file.
-  // Falls back to the standard download-to-Downloads-folder on browsers
-  // that don't support it (Firefox, Safari, older Chrome).
-  if (typeof window.showSaveFilePicker === 'function') {
+  // If user chose a folder upfront, write directly into it
+  if (saveDir) {
     try {
-      var handle = await window.showSaveFilePicker({
-        suggestedName: filename,
-        types: [{ description: 'CSV file', accept: { 'text/csv': ['.csv'] } }],
-      });
-      var writable = await handle.createWritable();
+      var fileHandle = await saveDir.getFileHandle(filename, { create: true });
+      var writable = await fileHandle.createWritable();
       await writable.write(blob);
       await writable.close();
       return;
     } catch(e) {
-      // User cancelled the picker -- don't fall through to auto-download
-      if (e.name === 'AbortError') return;
-      // Any other error, fall through to the standard download
+      // Fall through to standard download if folder write fails
     }
   }
 
