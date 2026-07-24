@@ -3,93 +3,160 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#F5F1EB">
-  <title>CSE Marine</title>
+  <meta name="theme-color" content="#EBF1F9">
+  <title>CSE Marine — Dealer Tools</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:#F5F1EB;--bg-card:#FBFAF6;--ink:#1A1A19;--ink-soft:#5C5A56;--ink-mute:#94918B;
-      --line:#E5DFD4;--accent:#1B3A78;--accent-h:#14305F;--accent-s:#1B3A781A;
-      --good:#2A6A4A;--good-s:#2A6A4A15;--warn:#1B3A78;--warn-s:#1B3A7818;
+      --bg:#EBF1F9;--bg-card:#FFFFFF;--ink:#1A1A1A;--ink-soft:#4A4A4A;--ink-mute:#8A8A8A;
+      --line:#E2E2E2;--accent:#4F86C6;--accent-h:#3A6DA8;--accent-s:#4F86C61A;
+      --nav-bg:#D6D6D6;--footer-bg:#8FB4E0;
+      --good:#2A6A4A;--good-s:#2A6A4A15;--warn:#7A5800;--warn-s:#7A580015;
       --danger:#9B1C1C;--danger-s:#9B1C1C15;
-      --font-d:'Fraunces','Georgia',serif;--font-b:'Geist',system-ui,sans-serif;--font-m:'Geist Mono',ui-monospace,monospace;
-      --r:12px;--rl:20px;
+      --font-d:'Geist','Helvetica Neue',Arial,sans-serif;
+      --font-b:'Geist',system-ui,sans-serif;
+      --font-m:'Geist Mono',ui-monospace,monospace;
+      --r:2px;--rl:2px;
+      --shadow-sm:0 1px 2px rgba(26,26,25,.04);
+      --shadow-lg:0 8px 18px -12px rgba(26,26,25,.18);
     }
     *,*::before,*::after{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:18px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100svh;-webkit-text-size-adjust:100%}
-    .app{max-width:640px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left)) max(48px,calc(env(safe-area-inset-bottom)+24px)) max(16px,env(safe-area-inset-right));padding-top:max(20px,env(safe-area-inset-top))}
-    header{text-align:center;margin-bottom:20px}
-    .brand{display:flex;flex-direction:column;align-items:center;gap:6px}
-    .brand-logo{width:auto;max-width:min(280px,80vw);max-height:112px}
-    .brand-text{font-family:var(--font-d);font-weight:500;font-size:clamp(24px,6vw,32px);letter-spacing:-.02em;color:var(--ink);line-height:1}
-    .brand-text em{font-style:italic;color:var(--accent)}
-    section{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--rl);padding:16px 18px;margin-bottom:12px}
-    .section-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:10px}
-    .btn{font-family:var(--font-b);font-size:15px;font-weight:500;border-radius:var(--r);border:1px solid transparent;cursor:pointer;transition:transform .08s,background .15s,border-color .15s,color .15s;-webkit-tap-highlight-color:transparent;padding:12px 16px;min-height:44px;touch-action:manipulation}
-    .btn:active:not(:disabled){transform:translateY(1px)}.btn:disabled{opacity:.4;cursor:not-allowed}
-    .btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
-    .btn-primary:hover:not(:disabled){background:var(--accent-h);border-color:var(--accent-h)}
+    html,body{
+      margin:0;padding:0;
+      background:var(--bg);color:var(--ink);
+      font-family:var(--font-b);font-size:18px;line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+      min-height:100svh;
+      -webkit-text-size-adjust:100%;text-size-adjust:100%;
+    }
+    body{display:flex;flex-direction:column;min-height:100svh;overflow-x:hidden}
+    .app{
+      width:100%;max-width:720px;margin:0 auto;flex:1;
+      display:flex;flex-direction:column;
+      padding:20px max(16px, env(safe-area-inset-left)) 0 max(16px, env(safe-area-inset-right));
+    }
+
+    /* Sections */
+    section{background:var(--bg-card);border-radius:var(--rl);padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm),var(--shadow-lg)}
+    .section-label{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--ink);margin-bottom:12px}
+    .section-label-icon{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--accent)}
+    .section-label-icon svg{width:15px;height:15px}
+    .section-hint{font-size:13px;color:var(--ink-mute);text-transform:none;letter-spacing:0;font-weight:400;margin-left:2px}
+
+    /* Buttons */
+    .btn{
+      font-family:var(--font-b);font-size:15px;font-weight:600;
+      border-radius:var(--r);border:1px solid transparent;cursor:pointer;
+      transition:transform .12s cubic-bezier(.34,1.56,.64,1),background .15s,border-color .15s,color .15s;
+      -webkit-tap-highlight-color:transparent;
+      padding:12px 16px;min-height:44px;touch-action:manipulation;
+    }
+    .btn:active:not(:disabled){transform:scale(.96)}.btn:disabled{opacity:.4;cursor:not-allowed}
+    .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn-primary:hover:not(:disabled){background:var(--accent-h);border-color:var(--accent-h);transform:translateY(-1px)}
     .btn-ghost{background:transparent;color:var(--ink-soft);border-color:var(--line)}
     .btn-ghost:hover:not(:disabled){border-color:var(--ink-soft);color:var(--ink)}
     .btn-warn{background:transparent;color:var(--accent);border-color:var(--accent)}
     .btn-warn:hover:not(:disabled){background:var(--accent-s)}
-    .btn-block{width:100%;padding:14px}.btn-sm{padding:8px 12px;font-size:13px;min-height:36px}
-    .banner{background:var(--accent-s);border:1px solid var(--accent);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:14px;line-height:1.55}
+    .btn-block{width:100%;padding:14px}
+    .btn-sm{padding:8px 12px;font-size:13px;min-height:36px}
+
+    /* Banner */
+    .banner{background:var(--accent-s);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:14px;line-height:1.55;box-shadow:var(--shadow-sm)}
     .banner h2{margin:0 0 5px;font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
     .banner ol{margin:0;padding-left:18px}.banner li+li{margin-top:3px}.banner strong{color:var(--accent)}
+
+    .unsupported{background:var(--accent-s);border:1px solid var(--accent);color:var(--ink);padding:12px 14px;border-radius:var(--r);font-size:15px;margin-bottom:12px;line-height:1.55}
+    .unsupported strong{display:block;margin-bottom:3px;color:var(--accent)}
+
+    /* Cap list */
     .cap-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
     .cap-empty{font-size:14px;color:var(--ink-mute);font-style:italic;padding:6px 0}
-    .cap-row{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:6px 12px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);transition:border-color .15s,background .15s;align-items:start}
-    .cap-row .cap-checkbox{grid-row:1/3;align-self:center;margin-top:2px}
+
+    .cap-row{
+      display:flex;flex-direction:column;gap:8px;
+      padding:14px 16px;background:var(--bg);border:1px solid var(--line);
+      border-radius:var(--r);transition:border-color .15s,background .15s;
+    }
     .cap-row.needs-update{border-color:var(--warn);background:var(--warn-s)}
-    .cap-info{display:flex;flex-direction:column;gap:4px;min-width:0;grid-column:2}
-    .cap-name{font-family:var(--font-m);font-size:13px;font-weight:500;color:var(--ink);word-break:break-word;overflow-wrap:anywhere}
+    .cap-row.is-selected{border-color:var(--accent);background:var(--accent-s)}
+    .cap-row.is-selected.needs-update{border-color:var(--warn);background:var(--warn-s)}
+
+    .cap-header{display:flex;align-items:flex-start;gap:10px}
+    .cap-check{flex-shrink:0;margin-top:2px;width:20px;height:20px;accent-color:var(--accent);cursor:pointer}
+
+    .cap-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .cap-name{font-family:var(--font-m);font-size:15px;font-weight:500;color:var(--ink);word-break:break-word;overflow-wrap:anywhere}
     .cap-meta{display:flex;gap:6px;flex-wrap:wrap}
-    .cap-pill{font-size:11px;font-family:var(--font-m);padding:3px 8px;border-radius:20px;border:1px solid var(--line);color:var(--ink-soft);background:var(--bg-card);white-space:nowrap;line-height:1.4}
+    .cap-pill{
+      font-size:13px;font-family:var(--font-m);padding:3px 8px;border-radius:20px;
+      border:1px solid var(--line);color:var(--ink-soft);background:var(--bg-card);
+      white-space:nowrap;line-height:1.4;
+    }
     .cap-pill.mode{border-color:var(--accent);background:var(--accent-s);color:var(--accent);font-weight:600}
     .cap-pill.fw-ok{border-color:var(--good);background:var(--good-s);color:var(--good)}
     .cap-pill.fw-bad{border-color:var(--warn);background:var(--warn-s);color:var(--warn);font-weight:600}
-    .cap-status{font-size:12px;color:var(--ink-mute);line-height:1.3}
+    .cap-status{font-size:14px;color:var(--ink-mute);line-height:1.3}
     .cap-status[data-tone=good]{color:var(--good)}.cap-status[data-tone=warn]{color:var(--warn)}
     .cap-status[data-tone=danger]{color:var(--danger)}.cap-status[data-tone=update]{color:var(--warn);font-weight:600}
     .cap-status[data-tone=working]{color:var(--accent)}
     .cap-status[data-tone=working]::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:5px;animation:pulse 1s ease infinite;vertical-align:middle}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-    .cap-btn-row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;grid-column:2}
-    .btn-blink{padding:8px 16px;font-size:13px;font-weight:600;border-radius:var(--r);background:var(--accent-s);border:1.5px solid var(--accent);color:var(--accent);cursor:pointer;font-family:var(--font-b);transition:all .15s;white-space:nowrap;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:40px}
-    .btn-blink:hover{background:var(--accent);color:var(--bg)}.btn-blink:active{transform:scale(.96)}
+
+    .cap-btn-row{display:flex;gap:8px;justify-content:flex-end}
+    .btn-blink{
+      padding:8px 16px;font-size:14px;font-weight:600;border-radius:var(--r);
+      background:var(--accent-s);border:1.5px solid var(--accent);color:var(--accent);
+      cursor:pointer;font-family:var(--font-b);transition:all .15s;white-space:nowrap;flex-shrink:0;
+      -webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:40px;
+    }
+    .btn-blink:hover{background:var(--accent);color:#fff}.btn-blink:active{transform:scale(.96)}
+
+    .cap-controls{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:14px;color:var(--ink-mute);flex-wrap:wrap;gap:6px}
+    .cap-controls a{color:var(--accent);text-decoration:none;cursor:pointer;font-weight:500;padding:4px 0;touch-action:manipulation}
+    .cap-controls a+a{margin-left:10px}
+
+    /* Mode grid */
     .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
     @media(min-width:440px){.mode-grid{grid-template-columns:repeat(4,1fr)}}
-    .mode-btn{padding:14px 6px;background:transparent;border:1.5px solid var(--line);border-radius:var(--r);cursor:pointer;font-family:var(--font-b);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:64px}
+    .mode-btn{
+      padding:14px 6px;background:transparent;border:1.5px solid var(--line);border-radius:var(--r);
+      cursor:pointer;font-family:var(--font-b);transition:all .15s;display:flex;flex-direction:column;
+      align-items:center;gap:3px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:64px;
+    }
     .mode-btn:hover:not(:disabled){border-color:var(--accent);background:var(--accent-s)}
     .mode-btn:disabled{opacity:.4;cursor:not-allowed}
-    .mode-btn.is-selected{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-    /* is-reading: cap is currently programmed to this mode (read from 'a' reply) */
+    .mode-btn.is-selected{background:var(--accent);border-color:var(--accent);color:#fff}
     .mode-btn.is-reading{border-color:var(--accent);border-width:2.5px;color:var(--accent)}
     .mode-btn-name{font-family:var(--font-d);font-weight:500;font-size:clamp(15px,4vw,18px);letter-spacing:-.01em}
     .mode-btn-psi{font-size:12px;color:var(--ink-mute)}
-    .mode-btn.is-selected .mode-btn-psi{color:rgba(245,241,235,.75)}
+    .mode-btn.is-selected .mode-btn-psi{color:rgba(255,255,255,.8)}
     .apply-row{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:12px}
     @media(max-width:320px){.apply-row{grid-template-columns:1fr}}
-    .fw-card{display:flex;align-items:flex-start;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
-    .fw-card.is-good{border-color:var(--good);background:var(--good-s)}
-    .fw-card.is-error{border-color:var(--danger);background:var(--danger-s)}
+
+    /* Firmware card */
+    .fw-card{display:flex;align-items:flex-start;gap:10px;background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
+    .fw-card.is-good{background:var(--good-s)}
+    .fw-card.is-error{background:var(--danger-s)}
     .fw-card-icon{font-size:20px;flex-shrink:0;line-height:1.4}
     .fw-card-body{flex:1;min-width:0}
-    .fw-card-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+    .fw-card-title{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:2px;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
     .fw-card.is-good .fw-card-title{color:var(--good)}.fw-card.is-error .fw-card-title{color:var(--danger)}
-    .fw-card-meta{font-size:12px;color:var(--ink-mute);font-family:var(--font-m)}
+    .fw-card-meta{font-size:14px;color:var(--ink-mute);font-family:var(--font-m)}
+
     .ota-progress{display:none;margin-top:12px}.ota-progress.is-visible{display:block}
     .ota-bar-wrap{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:6px}
     .ota-bar-fill{height:100%;border-radius:4px;background:var(--accent);width:0%;transition:width .3s ease}
     .ota-bar-fill.ind{width:35%;animation:ind 1.3s ease-in-out infinite}
     @keyframes ind{0%{transform:translateX(-200%)}100%{transform:translateX(400%)}}
-    .ota-bar-label{font-size:12px;color:var(--ink-mute);font-family:var(--font-m);line-height:1.4}
+    .ota-bar-label{font-size:14px;color:var(--ink-mute);font-family:var(--font-m);line-height:1.4}
     .ota-bar-label.good{color:var(--good)}.ota-bar-label.error{color:var(--danger)}
+
+    /* Toggle */
     .toggle-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
-    .toggle-label{font-size:14px;color:var(--ink-soft);line-height:1.4;flex:1;min-width:0}
+    .toggle-label{font-size:16px;color:var(--ink-soft);line-height:1.4;flex:1;min-width:0}
     .toggle-label strong{color:var(--ink);font-weight:600;display:block;margin-bottom:2px}
     .toggle-switch{position:relative;display:inline-flex;align-items:center;cursor:pointer;flex-shrink:0;margin-top:2px;touch-action:manipulation}
     .toggle-switch input{position:absolute;opacity:0;width:0;height:0}
@@ -97,52 +164,102 @@
     .toggle-switch input:checked ~ .toggle-track{background:var(--accent)}
     .toggle-thumb{position:absolute;left:3px;top:3px;width:22px;height:22px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .2s;pointer-events:none}
     .toggle-switch input:checked ~ .toggle-track .toggle-thumb{transform:translateX(20px)}
+
     /* Status tiles */
     .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-    .status-tile{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;background:var(--bg)}
-    .status-tile.good{border-color:var(--good);background:var(--good-s)}
-    .status-tile.warn{border-color:var(--warn);background:var(--warn-s)}
-    .status-tile.danger{border-color:var(--danger);background:var(--danger-s)}
+    .status-tile{border-radius:var(--r);padding:12px 14px;background:var(--bg);box-shadow:var(--shadow-sm)}
+    .status-tile.good{background:var(--good-s)}
+    .status-tile.warn{background:var(--warn-s)}
+    .status-tile.danger{background:var(--danger-s)}
     .status-tile-label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:4px}
     .status-tile-value{font-size:20px;font-weight:700;color:var(--ink);font-family:var(--font-m);line-height:1.1}
     .status-tile.good .status-tile-value{color:var(--good)}
     .status-tile.warn .status-tile-value{color:var(--warn)}
     .status-tile.danger .status-tile-value{color:var(--danger)}
     .status-tile-sub{font-size:11px;color:var(--ink-mute);margin-top:3px}
-    .status-tile-sub.large{font-size:20px;font-weight:700;font-family:var(--font-m);color:var(--ink);line-height:1.1;margin-top:4px}
-    /* Per-cap status rows inside status section */
-    .cap-status-row{padding:10px 14px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px}
+
+    .cap-status-row{padding:10px 14px;background:var(--bg);border-radius:var(--r);margin-bottom:8px;box-shadow:var(--shadow-sm)}
     .cap-status-row-name{font-family:var(--font-m);font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px}
+
     /* Log section */
-    .log-input{width:100%;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r);font-size:15px;font-family:var(--font-b);background:var(--bg);color:var(--ink);outline:none;margin-bottom:12px;-webkit-appearance:none}
+    .log-input{width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:var(--r);font-size:16px;font-family:var(--font-b);background:var(--bg-card);color:var(--ink);outline:none;margin-bottom:12px;-webkit-appearance:none;transition:border-color .15s}
     .log-input:focus{border-color:var(--accent)}
     .log-progress{display:none;margin-bottom:12px}.log-progress.is-visible{display:block}
     .log-bar-wrap{height:7px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:6px}
     .log-bar-fill{height:100%;border-radius:4px;background:var(--accent);width:0%;transition:width .3s}
-    .log-bar-label{font-size:12px;color:var(--ink-mute);font-family:var(--font-m)}
+    .log-bar-label{font-size:13px;color:var(--ink-mute);font-family:var(--font-m)}
     .log-bar-label.good{color:var(--good)}.log-bar-label.error{color:var(--danger)}
-    .unsupported{background:var(--accent-s);border:1px solid var(--accent);color:var(--ink);padding:12px 14px;border-radius:var(--r);font-size:14px;margin-bottom:12px;line-height:1.55}
-    .cap-controls{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-mute);flex-wrap:wrap;gap:6px}
-    .cap-controls a{color:var(--accent);text-decoration:none;cursor:pointer;font-weight:500;padding:4px 0;touch-action:manipulation}
-    .cap-controls a+a{margin-left:10px}
-    .cap-checkbox{appearance:none;width:22px;height:22px;border:1.5px solid var(--line);border-radius:6px;cursor:pointer;position:relative;background:var(--bg-card);transition:all .15s;flex-shrink:0;touch-action:manipulation}
-    .cap-checkbox:checked{background:var(--accent);border-color:var(--accent)}
-    .cap-checkbox:checked::after{content:'';position:absolute;left:5px;top:1px;width:6px;height:11px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
-    .unsupported strong{display:block;margin-bottom:3px;color:var(--accent)}
+
+    .section-note{margin:0 0 12px;font-size:14px;color:var(--ink-soft)}
+
+    /* Top bar */
+    .topbar{background:var(--nav-bg);position:sticky;top:0;z-index:150;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+    .topbar-inner{
+      width:100%;max-width:720px;margin:0 auto;position:relative;
+      padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-left)) 18px max(16px,env(safe-area-inset-right));
+      display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    }
+    .topbar-logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .topbar-logo-img{max-height:64px;width:auto;max-width:260px}
+    .topbar-logo-fallback{display:flex;align-items:center;gap:8px}
+    .topbar-logo-fallback svg{height:40px;width:auto}
+    .topbar-logo-text{font-family:var(--font-b);font-style:italic;font-size:28px;font-weight:700;color:#3D4FA0;letter-spacing:-.01em;line-height:1}
+    .topbar-logo-text sup{font-size:12px;font-style:normal;font-weight:600}
+    .topbar-badge{
+      font-family:var(--font-b);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--accent);background:var(--accent-s);border:1px solid var(--accent);
+      padding:6px 12px;border-radius:20px;white-space:nowrap;
+    }
+    .topbar-home-link{color:var(--ink-soft);font-family:var(--font-b);font-size:14px;font-weight:600;text-decoration:none;padding:6px 4px}
+    .topbar-home-link:hover{color:var(--accent)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+
+    .app-footer{
+      text-align:center;font-size:13px;color:#fff;background:var(--footer-bg);line-height:1.8;
+      padding:22px 16px max(22px, calc(env(safe-area-inset-bottom) + 12px)) 16px;
+      margin-top:auto;
+      margin-left: calc(-1 * max(16px, env(safe-area-inset-left)));
+      margin-right: calc(-1 * max(16px, env(safe-area-inset-right)));
+    }
+    .app-footer a{color:#fff;text-decoration:none;border-bottom:1px solid transparent}
+    .app-footer a:hover{border-bottom-color:#fff}
   </style>
 </head>
 <body>
-<main class="app">
-  <header>
-    <div class="brand">
-      <img class="brand-logo" src="logo.png" alt="CSE Marine"
-           onerror="this.style.display='none';document.getElementById('brandText').style.display='block'">
-      <span class="brand-text" id="brandText" style="display:none">CSE <em>Marine</em></span>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-logo">
+      <img class="topbar-logo-img" id="topbarLogoImg"
+           src="https://raw.githubusercontent.com/gmiedema-cse/CSE-Marine/main/logo.png" alt="CSE Marine"
+           onerror="this.style.display='none';document.getElementById('topbarLogoFallback').style.display='flex'">
+      <div class="topbar-logo-fallback" id="topbarLogoFallback" style="display:none">
+        <svg viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="nsGrad" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stop-color="#8FB4E0"/>
+              <stop offset="100%" stop-color="#3D4FA0"/>
+            </linearGradient>
+          </defs>
+          <path d="M4 30 C 10 6, 32 1, 54 9" fill="none" stroke="url(#nsGrad)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M4 21 C 9 3, 34 -2, 57 3" fill="none" stroke="url(#nsGrad)" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+        </svg>
+        <span class="topbar-logo-text">NeverSoft<sup>™</sup></span>
+      </div>
     </div>
-  </header>
+    <div class="topbar-right">
+      <span class="topbar-badge">Dealer Tools</span>
+      <a class="topbar-home-link" href="https://cse-marine.com" target="_blank" rel="noopener noreferrer">cse-marine.com →</a>
+    </div>
+  </div>
+</div>
+
+<main class="app">
+
   <div class="unsupported" id="unsupportedBanner" style="display:none">
     <strong>Web Bluetooth not supported.</strong> Open in Chrome or Edge on Mac, Windows, or Android.
   </div>
+
   <div class="banner">
     <h2>Setup</h2>
     <ol>
@@ -154,7 +271,7 @@
 
   <!-- CAPS -->
   <section>
-    <div class="section-label">Caps</div>
+    <div class="section-label"><span class="section-label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M8 6h8M5 12H2a10 10 0 0 0 20 0h-3"/></svg></span>Caps</div>
     <button class="btn btn-primary" id="findBtn">+ Add cap</button>
     <div class="cap-list" id="capList"></div>
     <div class="cap-controls" id="capControls" style="display:none">
@@ -165,7 +282,10 @@
 
   <!-- PRESSURE MODE -->
   <section>
-    <div class="section-label">Pressure mode <span style="font-size:11px;color:var(--ink-mute);text-transform:none;letter-spacing:0;font-weight:400;margin-left:6px">(tap again to deselect)</span></div>
+    <div class="section-label">
+      <span class="section-label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12 16 8"/></svg></span>
+      Pressure mode <span class="section-hint">(tap again to deselect)</span>
+    </div>
     <div class="mode-grid">
       <button class="mode-btn" data-level="1"><span class="mode-btn-name">Mode 1</span><span class="mode-btn-psi">2.0 PSI</span></button>
       <button class="mode-btn" data-level="2"><span class="mode-btn-name">Mode 2</span><span class="mode-btn-psi">2.5 PSI</span></button>
@@ -208,15 +328,15 @@
 
   <!-- CAP STATUS -->
   <section>
-    <div class="section-label">Cap status</div>
-    <p style="margin:0 0 12px;font-size:14px;color:var(--ink-soft)">Reads live data from all connected caps simultaneously.</p>
+    <div class="section-label"><span class="section-label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span>Cap status</div>
+    <p class="section-note">Reads live data from all connected caps simultaneously.</p>
     <button class="btn btn-primary btn-block" id="statusBtn" disabled>Read status</button>
     <div id="statusResults"></div>
   </section>
 
   <!-- LOG PULL -->
   <section>
-    <div class="section-label">Pull log</div>
+    <div class="section-label"><span class="section-label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1Z"/><path d="M7 6h10a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/><path d="m9 13 2 2 4-4"/></svg></span>Pull log</div>
     <label style="font-size:14px;font-weight:600;color:var(--ink);display:block;margin-bottom:6px">Customer name</label>
     <input class="log-input" id="logCustomerName" type="text" placeholder="e.g. John Smith">
     <button class="btn btn-primary btn-block" id="logBtn" disabled>Pull log from all caps</button>
@@ -226,11 +346,16 @@
     </div>
   </section>
 
+  <footer class="app-footer">
+    <a href="https://cse-marine.com/" target="_blank" rel="noopener">CSE Marine Products</a>
+    &nbsp;·&nbsp; <a href="tel:+16164643582">(616) 464-3582</a>
+    &nbsp;·&nbsp; <a href="mailto:info@cse-pd.com">info@cse-pd.com</a>
+  </footer>
 
 </main>
 <script>
 /* ===========================================================================
- * CSE Marine -- Pressure Mode + Status + Log + OTA
+ * CSE Marine -- Dealer Tools (Pressure Mode + Status + Log + OTA)
  *
  * FIRMWARE CONFIG -- update when releasing new firmware.
  * =========================================================================*/
@@ -239,7 +364,7 @@ var FIRMWARE_PATH    = 'firmware/NS_application_OTA_v3.2.img';
 var RAW_BASE         = 'https://raw.githubusercontent.com/' + GITHUB_REPO + '/main';
 var FIRMWARE_URL     = RAW_BASE + '/' + FIRMWARE_PATH;
 var REQUIRED_VERSION = '3.2';
-var FIRMWARE_BUILD_DATE = [0x26, 0x07, 0x07];  // July 07 2026 = 26188
+var FIRMWARE_BUILD_DATE = [0x26, 0x06, 0x26];  // June 26 2026 = 26177
 
 var NUS_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 var NUS_RX      = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
@@ -500,23 +625,18 @@ async function connectCap(device) {
 async function startAddingCaps() {
   if (addingCaps) return;
   addingCaps=true; updateControls();
-  while (addingCaps) {
-    try {
-      var device = await navigator.bluetooth.requestDevice({
-        filters: [
-          { namePrefix: 'CSE_Marine_', services: [NUS_SERVICE] },
-          { services: [NUS_SERVICE] }
-        ],
-        optionalServices: [NUS_SERVICE, 0x1800]
-      });
-      if (!caps.has(device.id)) connectCap(device);
-    } catch(err) {
-      // Only stop the loop if the user explicitly cancelled (closed the window).
-      // Any other error (e.g. connection failed) should re-open the window.
-      if (err.name === 'NotFoundError') break;
-      // For other errors, small pause then reopen
-      await new Promise(function(r){setTimeout(r,500);});
-    }
+  try {
+    var device = await navigator.bluetooth.requestDevice({
+      filters: [
+        { namePrefix: 'CSE_Marine_', services: [NUS_SERVICE] },
+        { services: [NUS_SERVICE] }
+      ],
+      optionalServices: [NUS_SERVICE, 0x1800]
+    });
+    if (!caps.has(device.id)) connectCap(device);
+  } catch(err) {
+    // NotFoundError = user closed the window without selecting -- silent
+    if (err.name !== 'NotFoundError') console.error('findCap error:', err);
   }
   addingCaps=false; updateControls();
 }
@@ -534,7 +654,10 @@ async function identifyCap(id) {
   try { await bleWrite(cap.rx,new Uint8Array([0x62])); } catch(e){}
 }
 
-/* -- Render -------------------------------------------------------------- */
+/* -- Render ---------------------------------------------------------------
+ * Cap row markup mirrors the visual pattern used across CSE Marine's tools:
+ * a header row (checkbox + name + pills + status) and a button row
+ * (blink + remove), so it reads consistently with the rest of the site. */
 function renderCaps() {
   var list = Array.from(caps.values());
   var capListEl = document.getElementById('capList');
@@ -542,7 +665,7 @@ function renderCaps() {
   capListEl.innerHTML='';
   list.forEach(function(cap) {
     var row=document.createElement('div');
-    row.className='cap-row'+(cap.needsUpdate?' needs-update':'');
+    row.className='cap-row'+(cap.needsUpdate?' needs-update':'')+(cap.selected?' is-selected':'');
     var modePill = cap.currentMode!==null ? '<span class="cap-pill mode">'+MODE_LABELS[cap.currentMode].name+' '+MODE_LABELS[cap.currentMode].psi+' PSI</span>' : '';
     var fwPill = '';
     if (cap.version!==null) {
@@ -551,8 +674,10 @@ function renderCaps() {
     }
     var metaHtml=(modePill||fwPill)?'<div class="cap-meta">'+modePill+fwPill+'</div>':'';
     row.innerHTML=
-      '<input type="checkbox" class="cap-checkbox" data-id="'+cap.id+'"'+(cap.selected?' checked':'')+'>'+
-      '<div class="cap-info"><span class="cap-name"></span>'+metaHtml+'<span class="cap-status"></span></div>'+
+      '<div class="cap-header">' +
+        '<input type="checkbox" class="cap-check" data-id="'+cap.id+'"'+(cap.selected?' checked':'')+'>'+
+        '<div class="cap-info"><span class="cap-name"></span>'+metaHtml+'<span class="cap-status"></span></div>'+
+      '</div>' +
       '<div class="cap-btn-row">'+
         '<button class="btn-blink" data-id="'+cap.id+'">&#128267;&nbsp;Blink</button>'+
         '<button class="btn btn-ghost btn-sm" data-remove="'+cap.id+'">Remove</button>'+
@@ -561,7 +686,7 @@ function renderCaps() {
     var s=row.querySelector('.cap-status'); s.textContent=cap.status; if(cap.tone) s.setAttribute('data-tone',cap.tone);
     capListEl.appendChild(row);
   });
-  capListEl.querySelectorAll('.cap-checkbox').forEach(function(cb) {
+  capListEl.querySelectorAll('.cap-check').forEach(function(cb) {
     cb.addEventListener('change', function() {
       var c = caps.get(cb.dataset.id);
       if (c) { c.selected = cb.checked; renderCaps(); }
@@ -589,7 +714,7 @@ function updateControls() {
   var findBtn=document.getElementById('findBtn'), programBtn=document.getElementById('programBtn');
   var quitBtn=document.getElementById('quitBtn'), statusBtn=document.getElementById('statusBtn');
   var logBtn=document.getElementById('logBtn');
-  findBtn.textContent=addingCaps?'Adding... (close window to stop)':'+ Add cap';
+  findBtn.textContent=addingCaps?'Connecting...':'+ Add cap';
   quitBtn.disabled=list.length===0;
   statusBtn.disabled=connCount===0;
   logBtn.disabled=connCount===0;
@@ -617,7 +742,6 @@ async function readAllStatus() {
     // Update currentMode if we got one
     if (d && d.mode && d.mode !== cap.currentMode) { cap.currentMode=d.mode; renderCaps(); }
 
-    var PRESS = {1:'2.0',2:'2.5',3:'3.0',4:'3.3'};
     var block=document.createElement('div');
     block.className='cap-status-row';
     var nameDiv=document.createElement('div');
@@ -633,11 +757,10 @@ async function readAllStatus() {
       var battTone=d.chargePct>=60?'good':d.chargePct>=30?'warn':'danger';
       var pumpTone=d.pumpFail===null?'':d.pumpFail<=3?'good':'danger';
       var pumpVal=d.pumpFail===null?'--':d.pumpFail<=3?'Good':'Run Diagnostics';
-      var pumpSub=d.pumpFail===null?'not reported':'fail count: '+d.pumpFail;
       var grid=document.createElement('div'); grid.className='status-grid';
-      function tile(label,value,sub,tone,subCls){
+      function tile(label,value,sub,tone){
         var t=document.createElement('div'); t.className='status-tile'+(tone?' '+tone:'');
-        t.innerHTML='<div class="status-tile-label">'+label+'</div><div class="status-tile-value">'+value+'</div>'+(sub?'<div class="status-tile-sub'+(subCls?' '+subCls:'')+'">'+sub+'</div>':'');
+        t.innerHTML='<div class="status-tile-label">'+label+'</div><div class="status-tile-value">'+value+'</div>'+(sub?'<div class="status-tile-sub">'+sub+'</div>':'');
         return t;
       }
       grid.appendChild(tile('Battery',Math.round(d.chargePct)+'%',null,battTone));
